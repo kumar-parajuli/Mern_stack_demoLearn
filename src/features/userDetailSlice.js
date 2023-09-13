@@ -39,6 +39,30 @@ export const showUser = createAsyncThunk(
     }
   }
 );
+//uPdate action
+
+export const updateUser = createAsyncThunk(
+  "updateUser",
+  async (data, { rejectWithValue }) => {
+    console.log("updated data", data);
+    const response = await fetch(
+      `https://64fe8fa9f8b9eeca9e28cf7b.mockapi.io/users/${data.id}`,
+      {
+        method: "PUT",
+        header: {
+          "content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
+    try {
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
 
 //User delete for single id
 export const deleteUser = createAsyncThunk(
@@ -65,7 +89,15 @@ export const userDetail = createSlice({
     users: [],
     loading: false,
     error: null,
+    searchData: [],
   },
+  reducers: {
+    searchUser: (state, action) => {
+      console.log(action.payload);
+      state.searchData = action.payload;
+    },
+  },
+
   extraReducers: {
     [createUser.pending]: (state) => {
       state.loading = true;
@@ -91,7 +123,6 @@ export const userDetail = createSlice({
     },
     [deleteUser.pending]: (state) => {
       state.loading = false;
-     
     },
     [deleteUser.fulfilled]: (state, action) => {
       state.loading = false;
@@ -105,6 +136,20 @@ export const userDetail = createSlice({
       state.loading = false;
       state.users = action.payload;
     },
+    [updateUser.pending]: (state) => {
+      state.loading = true;
+    },
+    [updateUser.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.users = state.users.map((ele) =>
+        ele.id === action.payload.id ? action.payload : ele
+      );
+    },
+    [updateUser.rejected]: (state, action) => {
+      state.loading = false;
+      state.users = action.payload;
+    },
   },
 });
 export default userDetail.reducer;
+export const { searchUser } = userDetail.actions;
